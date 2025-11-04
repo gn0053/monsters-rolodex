@@ -1,49 +1,53 @@
 import { Component } from 'react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
+import cloneDeep from 'lodash/cloneDeep';
+import CardList from './components/card-list/card-list-component';
+import SearchBox from './components/search-box/search-box-component';
 
 class App extends Component {
-  constructor() {
-    console.log('1');
-    super();
-    
-    this.state ={
+  state = {
       monsters: []
     };
-  }
+    reference_state = {monsters:[]};
   
+  constructor() {
+    super();
+    this.searchFunc = this.searchFunc.bind(this);
+
+    
+  }
+
   componentDidMount(){
-    console.log('3');
     fetch('https://jsonplaceholder.typicode.com/users')
     .then((response) => response.json())
     .then(
-      (users) => this.setState(() => {
-         return {monsters:users}
-      },
-      () =>{
-        console.log(this.state);
-      }
-    )
+      (users) => this.setState(() => 
+        {
+          this.reference_state = cloneDeep(this.state);
+          return {monsters:users}
+        }
+      )
      
     )
 
   }
+  searchFunc(event){
+      const monsters = this.reference_state.monsters;
+      const keyword = event.target.value.toLowerCase()
+      const new_state = monsters.filter((val) => val.name.toLowerCase().includes(keyword));
+      this.setState(() => 
+      {
+        return {monsters:new_state};
+      });
+  
+  }
 
   render(){
-      console.log('2');
       return (
         <div className="App">
-        {
-          this.state.monsters.map(
-              (monsters) => {
-              return (
-                <div key={monsters.id}>
-                  <h1>{monsters.name}</h1>
-                </div>
-              );
-            }
-          )
-        }
+        <SearchBox className="search-box" placeholder='Search Monsters' onChange={this.searchFunc} />
+        <CardList monsters={this.state.monsters} />
         </div>
       );
     }
